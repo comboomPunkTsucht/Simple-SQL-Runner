@@ -246,14 +246,13 @@ public class MainWindow extends JFrame {
 		main_tab_pnl.setForeground(new Color(255, 255, 255));
 		main_tab_pnl.setBackground(new Color(34, 34, 34));
 		main_tab_pnl.setToolTipText("Tabs");
-		main_tab_pnl.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
 		
 		JScrollPane table_pane = new JScrollPane();
 		table_pane.setFont(new Font("CaskaydiaCove Nerd Font Propo", Font.PLAIN, 12));
 		table_pane.setForeground(new Color(255, 255, 255));
 		table_pane.setBackground(new Color(52, 52, 52));
 		table_pane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-		table_pane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
+		table_pane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		main_tab_pnl.addTab("Table", null, table_pane, null);
 		
 		output_view = new JTable();
@@ -423,7 +422,7 @@ public class MainWindow extends JFrame {
 		            output_view.setModel(tableModel);
 		            
 		            // Display formatted result set in the log text area
-		            addLog(formatResultSet(output));
+		            //addLog(formatResultSet(output));
 		            passwd = " ";
 		            con.close();
 		            addLog("Connection closed");
