@@ -7,6 +7,7 @@
 			<attribute name="limit-modules" value="jdk.management.jfr,jdk.charsets,jdk.xml.dom,jdk.jstatd,jdk.httpserver,jdk.jcmd,java.se,jdk.javadoc,jdk.jshell,jdk.editpad,jdk.jsobject,jdk.sctp,java.smartcardio,jdk.unsupported,jdk.nio.mapmode,jdk.dynalink,jdk.unsupported.desktop,jdk.accessibility,jdk.security.jgss,jdk.incubator.vector,jdk.hotspot.agent,jdk.crypto.cryptoki,jdk.net,jdk.random,jdk.naming.rmi,jdk.jconsole,jdk.incubator.concurrent,jdk.internal.vm.compiler,jdk.internal.vm.compiler.management,jdk.security.auth,jdk.jartool,jdk.jpackage,jdk.naming.dns,jdk.localedata"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="/Users/mahd/DEV/Simple-SQL-Runner/src/components/rsyntaxtextarea-3.4.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="/Users/mahd/DEV/Simple-SQL-Runner/src/components/JDBC UCP 11.jar"/>
 	<classpathentry exported="true" kind="lib" path="/Users/mahd/DEV/Simple-SQL-Runner/src/components/pgJDBC 42.7.3.jar"/>
 	<classpathentry exported="true" kind="lib" path="/Users/mahd/DEV/Simple-SQL-Runner/src/components/MariaDB Java Client 2.3.0.jar"/>
