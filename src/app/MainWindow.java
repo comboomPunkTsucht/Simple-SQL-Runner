@@ -388,7 +388,7 @@ public class MainWindow extends JFrame {
 		syntaxTextArea.setPaintTabLines(true);
 		syntaxTextArea.setWrapStyleWord(false);
 		syntaxTextArea.setFractionalFontMetricsEnabled(true);
-		syntaxTextArea.setFont(new Font("CaskaydiaCove Nerd Font Mono", Font.PLAIN, 12));
+		syntaxTextArea.setFont(new Font("CaskaydiaCove Nerd Font Mono", Font.PLAIN, 24));
 		syntaxTextArea.setMarkAllHighlightColor(SystemColor.textHighlight);
 		syntaxTextArea.setTabLineColor(new Color(255, 255, 255));
 		syntaxTextArea.setForeground(new Color(255, 255, 255));
