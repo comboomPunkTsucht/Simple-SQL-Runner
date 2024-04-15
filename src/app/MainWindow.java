@@ -185,8 +185,8 @@ public class MainWindow extends JFrame {
 	 */
     public static void main(String[] args) {
         if (args.length == 0) {
-            System.out.println("No option provided. Using default option: --gui");
-            args = new String[]{"--gui"};
+            System.out.println("No option provided. Using default option: -gv");
+            args = new String[]{"-gv"};
         }
 
         String option = args[0];
@@ -767,13 +767,17 @@ public class MainWindow extends JFrame {
 
 		            statement = con.createStatement();
 		            output = statement.executeQuery(syntaxTextArea.getText());
+		            
+		            addLog("Getting Results...");
 
 		            // Create a custom TableModel with the ResultSet
 		            ResultSetTableModel tableModel = new ResultSetTableModel(output);
+		            
+		            addLog("Format data for visulation...");
 
 		            // Set the custom TableModel to the output_view JTable
 		            output_view.setModel(tableModel);
-
+		            addLog("Display data in Table View");
 		            // Display formatted result set in the log text area
 		            //addLog(formatResultSet(output));
 		            passwd = " ";
