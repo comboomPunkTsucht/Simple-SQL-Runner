@@ -10,8 +10,7 @@ import java.awt.Window.Type;
 import java.awt.Font;
 import java.awt.FontFormatException;
 import java.awt.GraphicsEnvironment;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.awt.BorderLayout;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
@@ -36,7 +35,7 @@ import javax.swing.text.*;
 import javax.swing.JToolBar;
 import javax.swing.JTabbedPane;
 import javax.swing.JSplitPane;
-import javax.swing.JDesktopPane;
+import javax.swing.JFileChooser;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
@@ -73,6 +72,7 @@ public class MainWindow extends JFrame {
 	private JTextArea log_view;
 	private RTextScrollPane statement_view;
 	private RSyntaxTextArea syntaxTextArea = new RSyntaxTextArea();
+	public boolean verbose = true;
 	
 	
 	
@@ -100,54 +100,7 @@ public class MainWindow extends JFrame {
         item.setToolTipText(null); // Swing annoyingly adds tool tip text to the menu item
         return item;
     }
-
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					MainWindow frame = new MainWindow();
-					frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
-	
-	private String getPasswd() {
-		String passwdd = "";
-		for (int i = 0; i < passwd.length(); i++) {
-			if (passwdd == null) {
-				passwdd = "*";
-			} else {
-				passwdd = passwdd + "*";
-			}
-		}
-		return passwdd;
-	}
-	
-	private void setLog(String logtext) {
-		log = logtext;
-		log_view.setText(log);
-		// Nach dem Hinzufügen des Textes zum JTextArea, scrollen zum Ende erzwingen		
-		log_view.setCaretPosition(log_view.getDocument().getLength());
-	}
-	
-	private void addLog(String addedtext) {
-		log = log + "\n" + addedtext;
-		log_view.setText(log);
-		// Nach dem Hinzufügen des Textes zum JTextArea, scrollen zum Ende erzwingen
-		log_view.setCaretPosition(log_view.getDocument().getLength());
-
-	}
-	
-	private String getLog() {
-		return log;
-	}
-	
+	/*
 	private String formatResultSet(ResultSet resultSet) {
         StringBuilder resultString = new StringBuilder();
         try {
@@ -226,7 +179,93 @@ public class MainWindow extends JFrame {
         }
 
         return resultString.toString();
+    } */
+	/**
+	 * Launch the application.
+	 */
+    public static void main(String[] args) {
+        if (args.length == 0) {
+            System.out.println("No option provided. Using default option: --gui");
+            args = new String[]{"--gui"};
+        }
+
+        String option = args[0];
+
+        switch (option) {
+            case "-g":
+            case "--gui":
+                if (args.length > 1 && (args[1].equals("-v") || args[1].equals("--verbose"))) {
+                    run(true);
+                } else {
+                    run(false);
+                }
+                return;
+            case "-gv":
+                run(true);
+                return;
+            case "-h":
+            case "--help":
+                System.out.println("Usage:");
+                System.out.println("To use the GUI: [-g/--gui]");
+                System.out.println("To see the help: [-h/--help]");
+                return;
+            default:
+                System.out.println("Invalid option. Use -h or --help for help.");
+                System.exit(1);
+        }
     }
+
+    public static void run(boolean v) {
+        EventQueue.invokeLater(() -> {
+            try {
+                MainWindow frame = new MainWindow();
+                frame.verbose = v;
+                frame.setVisible(true);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+	
+	private String getPasswd() {
+		String passwdd = "";
+		for (int i = 0; i < passwd.length(); i++) {
+			if (passwdd == null) {
+				passwdd = "*";
+			} else {
+				passwdd = passwdd + "*";
+			}
+		}
+		return passwdd;
+	}
+	
+	private void setLog(String logtext) {
+		log = logtext;
+		log_view.setText(log);
+		if (verbose) {
+		System.out.println(logtext);
+		}
+		// Nach dem Hinzufügen des Textes zum JTextArea, scrollen zum Ende erzwingen		
+		log_view.setCaretPosition(log_view.getDocument().getLength());
+	}
+	
+	private void addLog(String addedtext) {
+		log = log + "\n" + addedtext;
+		log_view.setText(log);
+		if (verbose) {
+		System.out.println(addedtext);
+		}
+		// Nach dem Hinzufügen des Textes zum JTextArea, scrollen zum Ende erzwingen
+		log_view.setCaretPosition(log_view.getDocument().getLength());
+
+	}
+	
+	private String getLog() {
+		return log;
+	}
+	
+	
 	
 	
 	public  void loadFonts() {
@@ -252,6 +291,58 @@ public class MainWindow extends JFrame {
             e.printStackTrace();
         }
     }
+	
+	private void importSQLFile() {
+	    // Open a file chooser dialog to select a SQL file
+		JFileChooser fileChooser = new JFileChooser();
+	    fileChooser.setDialogTitle("Select SQL File to Import");
+	    int result = fileChooser.showOpenDialog(this);
+
+	    if (result == JFileChooser.APPROVE_OPTION) {
+	        File selectedFile = fileChooser.getSelectedFile();
+	        StringBuilder sb = new StringBuilder();
+
+	        try (BufferedReader reader = new BufferedReader(new FileReader(selectedFile))) {
+	            String line;
+	            while ((line = reader.readLine()) != null) {
+	                sb.append(line).append("\n");
+	            }
+	            // Set the content of the syntaxTextArea to the content of the imported file
+	            syntaxTextArea.setText(sb.toString());
+	            // Optionally, you can also clear the log view or display a message indicating successful import
+	           addLog("SQL file imported successfully: " + selectedFile.getName());
+	        } catch (IOException ex) {
+	            // Handle any IO exceptions
+	            ex.printStackTrace();
+	            // Optionally, display an error message to the user
+	            addLog("Error importing SQL file: " + ex.getMessage());
+	        }
+	    }
+	}
+	
+	private void exportSQLFile() {
+	    // Open a file chooser dialog to specify the location to save the SQL file
+	    JFileChooser fileChooser = new JFileChooser();
+	    fileChooser.setDialogTitle("Save SQL File");
+	    int result = fileChooser.showSaveDialog(this);
+
+	    if (result == JFileChooser.APPROVE_OPTION) {
+	        File selectedFile = fileChooser.getSelectedFile();
+
+	        try (BufferedWriter writer = new BufferedWriter(new FileWriter(selectedFile))) {
+	            // Write the content of the syntaxTextArea to the selected file
+	            writer.write(syntaxTextArea.getText());
+	            // Optionally, display a message indicating successful export
+	            addLog("SQL file exported successfully: " + selectedFile.getName());
+	        } catch (IOException ex) {
+	            // Handle any IO exceptions
+	            ex.printStackTrace();
+	            // Optionally, display an error message to the user
+	            addLog("Error exporting SQL file: " + ex.getMessage());
+	        }
+	    }
+	}
+
 	/**
 	 * Create the frame.
 	 */
@@ -261,16 +352,50 @@ public class MainWindow extends JFrame {
 		setForeground(new Color(255, 255, 255));
 		setFont(new Font("CaskaydiaCove Nerd Font Propo", Font.PLAIN, 12));
 		setTitle("Simple SQL Runner");
-		setBackground(new Color(34, 34, 34));
+		setBackground(new Color(33, 33, 33));
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(1280, 720, 1280, 720);
 		setMinimumSize(new Dimension(1280, 720));
 		
 		JMenuBar menuBar = new JMenuBar();
+		menuBar.setBackground(new Color(33, 33, 33));
+		menuBar.setBorder(null);
 		menuBar.setFont(new Font("CaskaydiaCove Nerd Font Propo", Font.PLAIN, 14));
 		setJMenuBar(menuBar);
 		
+		JMenu fileMenu = new JMenu("File");
+		fileMenu.setForeground(new Color(255, 255, 255));
+		fileMenu.setBackground(new Color(33, 33, 33));
+		fileMenu.setBorder(null);
+	    fileMenu.setFont(new Font("CaskaydiaCove Nerd Font Propo", Font.PLAIN, 14));
+
+	    // Import menu item
+	    JMenuItem importMenuItem = new JMenuItem("Import SQL File");
+	    importMenuItem.setFont(new Font("CaskaydiaCove Nerd Font Propo", Font.PLAIN, 14));
+	    importMenuItem.addActionListener(new ActionListener() {
+	        @Override
+	        public void actionPerformed(ActionEvent e) {
+	           importSQLFile();
+	        }
+	    });
+	    fileMenu.add(importMenuItem);
+
+	    // Export menu item
+	    JMenuItem exportMenuItem = new JMenuItem("Export SQL File");
+	    exportMenuItem.setFont(new Font("CaskaydiaCove Nerd Font Propo", Font.PLAIN, 14));
+	    exportMenuItem.addActionListener(new ActionListener() {
+	        @Override
+	        public void actionPerformed(ActionEvent e) {
+	        	exportSQLFile();
+	        }
+	    });
+	    fileMenu.add(exportMenuItem);
+
+	    menuBar.add(fileMenu);
+		
 		JMenu editMenu = new JMenu("Edit");
+		editMenu.setBackground(new Color(33, 33, 33));
+		editMenu.setBorder(null);
 		editMenu.setForeground(new Color(255, 255, 255));
 		editMenu.setFont(new Font("CaskaydiaCove Nerd Font Propo", Font.PLAIN, 14));
 		
@@ -350,6 +475,8 @@ public class MainWindow extends JFrame {
 		
 		menuBar.add(editMenu);
 		
+		
+		
 		contentPane = new JPanel();
 		contentPane.setFont(new Font("CaskaydiaCove Nerd Font Propo", Font.PLAIN, 12));
 		contentPane.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
@@ -357,78 +484,49 @@ public class MainWindow extends JFrame {
 		contentPane.setName("Simple SQL Runner");
 		contentPane.setForeground(new Color(255, 255, 255));
 		contentPane.setBackground(new Color(34, 34, 34));
-		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+		contentPane.setBorder(null);
 
 		setContentPane(contentPane);
 		contentPane.setLayout(new BorderLayout(0, 0));
 		
 		JSplitPane main_split_pnl = new JSplitPane();
+		main_split_pnl.setBorder(null);
 		main_split_pnl.setResizeWeight(0.7);
 		main_split_pnl.setForeground(new Color(255, 255, 255));
-		main_split_pnl.setBackground(new Color(52, 52, 52));
+		main_split_pnl.setBackground(new Color(33, 33, 33));
 		main_split_pnl.setOneTouchExpandable(true);
 		contentPane.add(main_split_pnl, BorderLayout.CENTER);
 		
 		JSplitPane sub_split_pnl = new JSplitPane();
+		sub_split_pnl.setBorder(null);
 		sub_split_pnl.setOrientation(JSplitPane.VERTICAL_SPLIT);
 		sub_split_pnl.setResizeWeight(0.5);
 		sub_split_pnl.setForeground(new Color(255, 255, 255));
-		sub_split_pnl.setBackground(new Color(52, 52, 52));
+		sub_split_pnl.setBackground(new Color(33, 33, 33));
 		sub_split_pnl.setOneTouchExpandable(true);
 		main_split_pnl.setLeftComponent(sub_split_pnl);
-	
 		
-		
-		syntaxTextArea.setCodeFoldingEnabled(true);
-		syntaxTextArea.setEOLMarkersVisible(true);
-		syntaxTextArea.setMatchedBracketBorderColor(SystemColor.textHighlightText);
-		syntaxTextArea.setMatchedBracketBGColor(SystemColor.controlHighlight);
-		syntaxTextArea.setPaintMarkOccurrencesBorder(true);
-		syntaxTextArea.setPaintMatchedBracketPair(true);
-		syntaxTextArea.setPaintTabLines(true);
-		syntaxTextArea.setWrapStyleWord(false);
-		syntaxTextArea.setFractionalFontMetricsEnabled(true);
-		syntaxTextArea.setFont(new Font("CaskaydiaCove Nerd Font Mono", Font.PLAIN, 24));
-		syntaxTextArea.setMarkAllHighlightColor(SystemColor.textHighlight);
-		syntaxTextArea.setTabLineColor(new Color(255, 255, 255));
-		syntaxTextArea.setForeground(new Color(255, 255, 255));
-		syntaxTextArea.setTabsEmulated(true);
-		syntaxTextArea.setWhitespaceVisible(true);
-		syntaxTextArea.setUseSelectedTextColor(true);
-		syntaxTextArea.setCurrentLineHighlightColor(SystemColor.textHighlight);
-		syntaxTextArea.setBackground(new Color(52, 52, 52));
-		syntaxTextArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_SQL);
-		
-		
-		
-		statement_view = new RTextScrollPane(syntaxTextArea);
-		statement_view.getGutter().setExpandedFoldRenderStrategy(ExpandedFoldRenderStrategy.ALWAYS);
-		statement_view.getGutter().setCurrentLineNumberColor(SystemColor.controlHighlight);
-		statement_view.getGutter().setActiveLineRangeColor(SystemColor.textHighlight);
-		statement_view.getGutter().setArmedFoldBackground(new Color(33, 33, 33));
-		statement_view.getGutter().setBorderColor(new Color(33, 33, 33));
-		statement_view.getGutter().setFoldIndicatorForeground(new Color(255, 255, 255));
-		statement_view.getGutter().setFoldBackground(new Color(33, 33, 33));
-		statement_view.getGutter().setForeground(new Color(33, 33, 33));
-		statement_view.getGutter().setBackground(new Color(33, 33, 33));
-		statement_view.getGutter().setLineNumberColor(new Color(255, 255, 255));
-		statement_view.getGutter().setLineNumberFont(new Font("CaskaydiaCove Nerd Font Mono", Font.PLAIN, 12));
-		sub_split_pnl.setRightComponent(statement_view);
-		statement_view.setBackground(new Color(52, 52, 52));
-		statement_view.setForeground(new Color(255, 255, 255));
-		statement_view.setFont(new Font("CaskaydiaCove Nerd Font Mono", Font.PLAIN, 24));
+		JPanel table_pnl = new JPanel();
+		table_pnl.setBorder(null);
+		table_pnl.setBackground(new Color(33, 33, 33));
+		sub_split_pnl.setLeftComponent(table_pnl);
+		table_pnl.setLayout(new BorderLayout(0, 0));
 		
 		
 		JScrollPane table_pane = new JScrollPane();
-		sub_split_pnl.setLeftComponent(table_pane);
+		table_pane.setBorder(null);
+		table_pnl.add(table_pane);
 		table_pane.setAutoscrolls(true);
 		table_pane.setFont(new Font("CaskaydiaCove Nerd Font Propo", Font.PLAIN, 12));
 		table_pane.setForeground(new Color(255, 255, 255));
-		table_pane.setBackground(new Color(52, 52, 52));
+		table_pane.setBackground(new Color(33, 33, 33));
 		table_pane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 		table_pane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		
 		output_view = new JTable();
+		output_view.setBorder(null);
+		table_pane.setViewportView(output_view);
+		output_view.setRowHeight(28);
 		output_view.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 		output_view.setAutoCreateRowSorter(true);
 		output_view.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
@@ -438,13 +536,97 @@ public class MainWindow extends JFrame {
 		output_view.setSelectionBackground(SystemColor.textHighlight);
 		output_view.setSelectionForeground(new Color(0, 0, 0));
 		output_view.setGridColor(new Color(255, 255, 255));
-		output_view.setFont(new Font("CaskaydiaCove Nerd Font Mono", Font.PLAIN, 12));
+		output_view.setFont(new Font("CaskaydiaCove Nerd Font Mono", Font.PLAIN, 24));
 		output_view.setForeground(new Color(255, 255, 255));
 		output_view.setBackground(new Color(52, 52, 52));
-		table_pane.setViewportView(output_view);
+		
+		JLabel table_lbl = new JLabel("Table View");
+		table_lbl.setBorder(null);
+		table_lbl.setFont(new Font("CaskaydiaCove Nerd Font Propo", Font.PLAIN, 13));
+		table_lbl.setBackground(new Color(33, 33, 33));
+		table_lbl.setForeground(new Color(255, 255, 255));
+		table_lbl.setHorizontalAlignment(SwingConstants.CENTER);
+		table_pnl.add(table_lbl, BorderLayout.NORTH);
+		
+		JPanel statement_pnl = new JPanel();
+		statement_pnl.setBorder(null);
+		statement_pnl.setBackground(new Color(33, 33, 33));
+		sub_split_pnl.setRightComponent(statement_pnl);
+		statement_pnl.setLayout(new BorderLayout(0, 0));
+		
+		JLabel statement_lbl = new JLabel("Statement Editor");
+		statement_lbl.setBorder(null);
+		statement_lbl.setFont(new Font("CaskaydiaCove Nerd Font Propo", Font.PLAIN, 13));
+		statement_lbl.setHorizontalAlignment(SwingConstants.CENTER);
+		statement_lbl.setForeground(new Color(255, 255, 255));
+		statement_lbl.setBackground(new Color(33, 33, 33));
+		statement_pnl.add(statement_lbl, BorderLayout.NORTH);
+		syntaxTextArea.setBorder(null);
+		syntaxTextArea.setTabSize(3);
+		syntaxTextArea.setHyperlinkForeground(new Color(255, 255, 255));
+		
+			
+			
+			syntaxTextArea.setCodeFoldingEnabled(true);
+			syntaxTextArea.setEOLMarkersVisible(true);
+			syntaxTextArea.setMatchedBracketBorderColor(SystemColor.textHighlightText);
+			syntaxTextArea.setMatchedBracketBGColor(SystemColor.controlHighlight);
+			syntaxTextArea.setPaintMarkOccurrencesBorder(true);
+			syntaxTextArea.setPaintMatchedBracketPair(true);
+			syntaxTextArea.setPaintTabLines(true);
+			syntaxTextArea.setWrapStyleWord(false);
+			syntaxTextArea.setFractionalFontMetricsEnabled(true);
+			syntaxTextArea.setFont(new Font("CaskaydiaCove Nerd Font Mono", Font.PLAIN, 24));
+			syntaxTextArea.setMarkAllHighlightColor(SystemColor.textHighlight);
+			syntaxTextArea.setTabLineColor(new Color(255, 255, 255));
+			syntaxTextArea.setForeground(new Color(255, 255, 255));
+			syntaxTextArea.setTabsEmulated(true);
+			syntaxTextArea.setWhitespaceVisible(true);
+			syntaxTextArea.setUseSelectedTextColor(true);
+			syntaxTextArea.setCurrentLineHighlightColor(new Color(55, 55, 55));
+			syntaxTextArea.setBackground(new Color(52, 52, 52));
+			syntaxTextArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_SQL);
+			
+			
+			
+			statement_view = new RTextScrollPane(syntaxTextArea);
+			statement_view.getGutter().setBorder(null);
+			statement_view.getTextArea().setBorder(null);
+			statement_view.setBorder(null);
+			statement_pnl.add(statement_view, BorderLayout.CENTER);
+			statement_view.getGutter().setExpandedFoldRenderStrategy(ExpandedFoldRenderStrategy.ALWAYS);
+			statement_view.getGutter().setCurrentLineNumberColor(SystemColor.controlHighlight);
+			statement_view.getGutter().setActiveLineRangeColor(SystemColor.textHighlight);
+			statement_view.getGutter().setArmedFoldBackground(new Color(33, 33, 33));
+			statement_view.getGutter().setBorderColor(new Color(33, 33, 33));
+			statement_view.getGutter().setFoldIndicatorForeground(new Color(255, 255, 255));
+			statement_view.getGutter().setFoldBackground(new Color(33, 33, 33));
+			statement_view.getGutter().setForeground(new Color(33, 33, 33));
+			statement_view.getGutter().setBackground(new Color(33, 33, 33));
+			statement_view.getGutter().setLineNumberColor(new Color(255, 255, 255));
+			statement_view.getGutter().setLineNumberFont(new Font("CaskaydiaCove Nerd Font Mono", Font.PLAIN, 24));
+			statement_view.setBackground(new Color(52, 52, 52));
+			statement_view.setForeground(new Color(255, 255, 255));
+			statement_view.setFont(new Font("CaskaydiaCove Nerd Font Mono", Font.PLAIN, 24));
+		
+		JPanel log_pnl = new JPanel();
+		log_pnl.setBorder(null);
+		log_pnl.setForeground(new Color(255, 255, 255));
+		log_pnl.setBackground(new Color(33, 33, 33));
+		main_split_pnl.setRightComponent(log_pnl);
+		log_pnl.setLayout(new BorderLayout(0, 0));
+		
+		JLabel log_lbl = new JLabel("Log View");
+		log_lbl.setBorder(null);
+		log_lbl.setBackground(new Color(33, 33, 33));
+		log_lbl.setFont(new Font("CaskaydiaCove Nerd Font Propo", Font.PLAIN, 13));
+		log_lbl.setHorizontalAlignment(SwingConstants.CENTER);
+		log_lbl.setForeground(new Color(255, 255, 255));
+		log_pnl.add(log_lbl, BorderLayout.NORTH);
 		
 		JScrollPane log_pane = new JScrollPane();
-		main_split_pnl.setRightComponent(log_pane);
+		log_pane.setBorder(null);
+		log_pnl.add(log_pane, BorderLayout.CENTER);
 		log_pane.setAutoscrolls(true);
 		log_pane.setFont(new Font("CaskaydiaCove Nerd Font Propo", Font.PLAIN, 12));
 		log_pane.setForeground(new Color(255, 255, 255));
@@ -453,6 +635,7 @@ public class MainWindow extends JFrame {
 		log_pane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
 		
 		log_view = new JTextArea();
+		log_view.setBorder(null);
 		log_pane.setViewportView(log_view);
 		log_view.setSelectionColor(SystemColor.textHighlight);
 		log_view.setEditable(false);
@@ -461,6 +644,7 @@ public class MainWindow extends JFrame {
 		log_view.setForeground(new Color(255, 255, 255));
 		
 		JPanel top_pnl = new JPanel();
+		top_pnl.setBorder(null);
 		top_pnl.setBackground(new Color(34, 34, 34));
 		contentPane.add(top_pnl, BorderLayout.NORTH);
 		top_pnl.setLayout(new GridLayout(1, 1, 0, 0));
@@ -557,6 +741,8 @@ public class MainWindow extends JFrame {
 		passwd_tf.setToolTipText("Password");
 		
 		JButton run_statement_btn = new JButton("Run Statement");
+		run_statement_btn.setIconTextGap(8);
+		run_statement_btn.setHorizontalTextPosition(SwingConstants.CENTER);
 		run_statement_btn.setFont(new Font("CaskaydiaCove Nerd Font Propo", Font.BOLD, 12));
 		run_statement_btn.setToolTipText("Run Statement");
 		run_statement_btn.addActionListener(new ActionListener() {
