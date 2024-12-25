@@ -1,11 +1,17 @@
 package app;
 
 import java.awt.EventQueue;
+import components.NORD_COLORS;
 import components.ResultSetTableModel;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
-import java.awt.Color;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
+
+
+import java.awt.Component;
 import java.awt.Window.Type;
 import java.awt.Font;
 import java.awt.FontFormatException;
@@ -43,6 +49,9 @@ import java.awt.SystemColor;
 import java.sql.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+
 import javax.swing.JComboBox;
 import javax.swing.Action;
 import javax.swing.DefaultComboBoxModel;
@@ -51,10 +60,14 @@ import javax.swing.JTextPane;
 import javax.swing.ListSelectionModel;
 import org.fife.ui.rtextarea.*;
 import org.fife.ui.rsyntaxtextarea.*;
+import org.fife.ui.rsyntaxtextarea.Style;
+
 import javax.swing.KeyStroke;
 import java.awt.event.KeyEvent;
 import javax.swing.AbstractAction;
 import java.awt.event.InputEvent;
+import java.util.Locale;
+import java.awt.Dialog.ModalExclusionType;
 
 public class MainWindow extends JFrame {
 
@@ -293,121 +306,127 @@ public class MainWindow extends JFrame {
     }
 
 	private void importSQLFile() {
-	    // Open a file chooser dialog to select a SQL file
-		JFileChooser fileChooser = new JFileChooser();
+	    JFileChooser fileChooser = new JFileChooser();
 	    fileChooser.setDialogTitle("Select SQL File to Import");
-	    int result = fileChooser.showOpenDialog(this);
 
+	    // Create a file filter for SQL files
+	    FileNameExtensionFilter sqlFilter = new FileNameExtensionFilter("SQL files (*.sql)", "sql");
+	    fileChooser.addChoosableFileFilter(sqlFilter);
+	    fileChooser.setFileFilter(sqlFilter);
+
+	    int result = fileChooser.showOpenDialog(this);
 	    if (result == JFileChooser.APPROVE_OPTION) {
 	        File selectedFile = fileChooser.getSelectedFile();
 	        StringBuilder sb = new StringBuilder();
-
 	        try (BufferedReader reader = new BufferedReader(new FileReader(selectedFile))) {
 	            String line;
 	            while ((line = reader.readLine()) != null) {
 	                sb.append(line).append("\n");
 	            }
-	            // Set the content of the syntaxTextArea to the content of the imported file
 	            syntaxTextArea.setText(sb.toString());
-	            // Optionally, you can also clear the log view or display a message indicating successful import
-	           addLog("SQL file imported successfully: " + selectedFile.getName());
+	            addLog("SQL file imported successfully: " + selectedFile.getName());
 	        } catch (IOException ex) {
-	            // Handle any IO exceptions
-	            ex.printStackTrace();
-	            // Optionally, display an error message to the user
 	            addLog("Error importing SQL file: " + ex.getMessage());
 	        }
 	    }
 	}
 
+
 	private void exportSQLFile() {
-	    // Open a file chooser dialog to specify the location to save the SQL file
 	    JFileChooser fileChooser = new JFileChooser();
 	    fileChooser.setDialogTitle("Save SQL File");
-	    int result = fileChooser.showSaveDialog(this);
 
+	    // Create a file filter for SQL files
+	    FileNameExtensionFilter sqlFilter = new FileNameExtensionFilter("SQL files (*.sql)", "sql");
+	    fileChooser.addChoosableFileFilter(sqlFilter);
+	    fileChooser.setFileFilter(sqlFilter);
+
+	    int result = fileChooser.showSaveDialog(this);
 	    if (result == JFileChooser.APPROVE_OPTION) {
 	        File selectedFile = fileChooser.getSelectedFile();
-
+	        // Ensure the file has a .sql extension
+	        if (!selectedFile.getName().toLowerCase().endsWith(".sql")) {
+	            selectedFile = new File(selectedFile.getParentFile(), selectedFile.getName() + ".sql");
+	        }
 	        try (BufferedWriter writer = new BufferedWriter(new FileWriter(selectedFile))) {
-	            // Write the content of the syntaxTextArea to the selected file
 	            writer.write(syntaxTextArea.getText());
-	            // Optionally, display a message indicating successful export
 	            addLog("SQL file exported successfully: " + selectedFile.getName());
 	        } catch (IOException ex) {
-	            // Handle any IO exceptions
-	            ex.printStackTrace();
-	            // Optionally, display an error message to the user
 	            addLog("Error exporting SQL file: " + ex.getMessage());
 	        }
 	    }
 	}
 
+
 	/**
 	 * Create the frame.
 	 */
 	public MainWindow() {
+		setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
+		setModalExclusionType(ModalExclusionType.APPLICATION_EXCLUDE);
+		setLocale(Locale.GERMANY);
+		setName("Simple SQL Runner");
 		loadFonts();
 		setVisible(true);
-		setForeground(new Color(255, 255, 255));
+		setForeground(NORD_COLORS.FOREGROUND);
 		setFont(new Font("CaskaydiaCove Nerd Font Propo", Font.PLAIN, 12));
 		setTitle("Simple SQL Runner");
-		setBackground(new Color(33, 33, 33));
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setBackground(NORD_COLORS.BACKGROUND);
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setBounds(1280, 720, 1280, 720);
 		setMinimumSize(new Dimension(1280, 720));
+		setMaximumSize(new Dimension(2560,1600));
 
 		JMenuBar menuBar = new JMenuBar();
-		menuBar.setBackground(new Color(33, 33, 33));
+		menuBar.setBackground(NORD_COLORS.BACKGROUND);
 		menuBar.setBorder(null);
 		menuBar.setFont(new Font("CaskaydiaCove Nerd Font Propo", Font.PLAIN, 14));
 		setJMenuBar(menuBar);
 
 		JMenu fileMenu = new JMenu("File");
-		fileMenu.setForeground(new Color(255, 255, 255));
-		fileMenu.setBackground(new Color(33, 33, 33));
+		fileMenu.setForeground(NORD_COLORS.FOREGROUND);
+		fileMenu.setBackground(NORD_COLORS.BACKGROUND);
 		fileMenu.setBorder(null);
-	    fileMenu.setFont(new Font("CaskaydiaCove Nerd Font Propo", Font.PLAIN, 14));
+		fileMenu.setFont(new Font("CaskaydiaCove Nerd Font Propo", Font.PLAIN, 14));
 
-	    // Import menu item
-	    JMenuItem importMenuItem = new JMenuItem("Import SQL File");
-	    importMenuItem.setFont(new Font("CaskaydiaCove Nerd Font Propo", Font.PLAIN, 14));
-	    importMenuItem.addActionListener(new ActionListener() {
-	        @Override
-	        public void actionPerformed(ActionEvent e) {
-	           importSQLFile();
-	        }
-	    });
-	    fileMenu.add(importMenuItem);
+		// Import menu item
+		JMenuItem importMenuItem = new JMenuItem("Import SQL File");
+		importMenuItem.setFont(new Font("CaskaydiaCove Nerd Font Propo", Font.PLAIN, 14));
+		importMenuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				importSQLFile();
+			}
+		});
+		fileMenu.add(importMenuItem);
 
-	    // Export menu item
-	    JMenuItem exportMenuItem = new JMenuItem("Export SQL File");
-	    exportMenuItem.setFont(new Font("CaskaydiaCove Nerd Font Propo", Font.PLAIN, 14));
-	    exportMenuItem.addActionListener(new ActionListener() {
-	        @Override
-	        public void actionPerformed(ActionEvent e) {
-	        	exportSQLFile();
-	        }
-	    });
-	    fileMenu.add(exportMenuItem);
+		// Export menu item
+		JMenuItem exportMenuItem = new JMenuItem("Export SQL File");
+		exportMenuItem.setFont(new Font("CaskaydiaCove Nerd Font Propo", Font.PLAIN, 14));
+		exportMenuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				exportSQLFile();
+			}
+		});
+		fileMenu.add(exportMenuItem);
 
-	    menuBar.add(fileMenu);
+		menuBar.add(fileMenu);
 
 		JMenu editMenu = new JMenu("Edit");
-		editMenu.setBackground(new Color(33, 33, 33));
+		editMenu.setBackground(NORD_COLORS.BACKGROUND);
 		editMenu.setBorder(null);
-		editMenu.setForeground(new Color(255, 255, 255));
+		editMenu.setForeground(NORD_COLORS.FOREGROUND);
 		editMenu.setFont(new Font("CaskaydiaCove Nerd Font Propo", Font.PLAIN, 14));
-
 
 		JMenuItem undo_btn = new JMenuItem();
 		undo_btn.setFont(new Font("CaskaydiaCove Nerd Font Propo", Font.PLAIN, 14));
 		undo_btn.setAction(RTextArea.getAction(RTextArea.UNDO_ACTION));
 		if (System.getProperty("os.name").startsWith("Mac")) {
-		    // On macOS, use Command+A
+			// On macOS, use Command+A
 			undo_btn.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.META_DOWN_MASK));
 		} else {
-		    // On other platforms, use Ctrl+A
+			// On other platforms, use Ctrl+A
 			undo_btn.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_DOWN_MASK));
 		}
 		undo_btn.setText("Undo");
@@ -418,10 +437,10 @@ public class MainWindow extends JFrame {
 		redo_btn.setAction(RTextArea.getAction(RTextArea.REDO_ACTION));
 		// Set accelerator based on the OS
 		if (System.getProperty("os.name").startsWith("Mac")) {
-		    // On macOS, use Command+A
+			// On macOS, use Command+A
 			redo_btn.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Y, InputEvent.META_DOWN_MASK));
 		} else {
-		    // On other platforms, use Ctrl+A
+			// On other platforms, use Ctrl+A
 			redo_btn.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Y, InputEvent.CTRL_DOWN_MASK));
 		}
 		redo_btn.setText("Redo");
@@ -462,11 +481,11 @@ public class MainWindow extends JFrame {
 		JMenuItem sel_all_btn = new JMenuItem();
 		// Set accelerator based on the OS
 		if (System.getProperty("os.name").startsWith("Mac")) {
-		    // On macOS, use Command+A
-		    sel_all_btn.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, InputEvent.META_DOWN_MASK));
+			// On macOS, use Command+A
+			sel_all_btn.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, InputEvent.META_DOWN_MASK));
 		} else {
-		    // On other platforms, use Ctrl+A
-		    sel_all_btn.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, InputEvent.CTRL_DOWN_MASK));
+			// On other platforms, use Ctrl+A
+			sel_all_btn.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, InputEvent.CTRL_DOWN_MASK));
 		}
 		sel_all_btn.setFont(new Font("CaskaydiaCove Nerd Font Propo", Font.PLAIN, 14));
 		sel_all_btn.setAction(RTextArea.getAction(RTextArea.SELECT_ALL_ACTION));
@@ -475,15 +494,13 @@ public class MainWindow extends JFrame {
 
 		menuBar.add(editMenu);
 
-
-
 		contentPane = new JPanel();
 		contentPane.setFont(new Font("CaskaydiaCove Nerd Font Propo", Font.PLAIN, 12));
 		contentPane.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 		contentPane.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
 		contentPane.setName("Simple SQL Runner");
-		contentPane.setForeground(new Color(255, 255, 255));
-		contentPane.setBackground(new Color(34, 34, 34));
+		contentPane.setForeground(NORD_COLORS.FOREGROUND);
+		contentPane.setBackground(NORD_COLORS.BACKGROUND);
 		contentPane.setBorder(null);
 
 		setContentPane(contentPane);
@@ -492,136 +509,203 @@ public class MainWindow extends JFrame {
 		JSplitPane main_split_pnl = new JSplitPane();
 		main_split_pnl.setBorder(null);
 		main_split_pnl.setResizeWeight(0.7);
-		main_split_pnl.setForeground(new Color(255, 255, 255));
-		main_split_pnl.setBackground(new Color(33, 33, 33));
+		main_split_pnl.setForeground(NORD_COLORS.FOREGROUND);
+		main_split_pnl.setBackground(NORD_COLORS.BACKGROUND);
 		main_split_pnl.setOneTouchExpandable(true);
 		contentPane.add(main_split_pnl, BorderLayout.CENTER);
 
 		JSplitPane sub_split_pnl = new JSplitPane();
 		sub_split_pnl.setBorder(null);
 		sub_split_pnl.setOrientation(JSplitPane.VERTICAL_SPLIT);
-		sub_split_pnl.setResizeWeight(0.5);
-		sub_split_pnl.setForeground(new Color(255, 255, 255));
-		sub_split_pnl.setBackground(new Color(33, 33, 33));
+		sub_split_pnl.setResizeWeight(0.7);
+		sub_split_pnl.setForeground(NORD_COLORS.FOREGROUND);
+		sub_split_pnl.setBackground(NORD_COLORS.BACKGROUND);
 		sub_split_pnl.setOneTouchExpandable(true);
 		main_split_pnl.setLeftComponent(sub_split_pnl);
 
 		JPanel table_pnl = new JPanel();
 		table_pnl.setBorder(null);
-		table_pnl.setBackground(new Color(33, 33, 33));
+		table_pnl.setBackground(NORD_COLORS.BACKGROUND);
 		sub_split_pnl.setLeftComponent(table_pnl);
 		table_pnl.setLayout(new BorderLayout(0, 0));
 
-
 		JScrollPane table_pane = new JScrollPane();
+		table_pane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		table_pane.setBorder(null);
 		table_pnl.add(table_pane);
 		table_pane.setAutoscrolls(true);
 		table_pane.setFont(new Font("CaskaydiaCove Nerd Font Propo", Font.PLAIN, 12));
-		table_pane.setForeground(new Color(255, 255, 255));
-		table_pane.setBackground(new Color(33, 33, 33));
+		table_pane.setForeground(NORD_COLORS.FOREGROUND);
+		table_pane.setBackground(NORD_COLORS.BACKGROUND);
 		table_pane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-		table_pane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
 		output_view = new JTable();
+		output_view.setLocale(Locale.GERMANY);
+		output_view.setSurrendersFocusOnKeystroke(true);
 		output_view.setBorder(null);
 		table_pane.setViewportView(output_view);
 		output_view.setRowHeight(28);
-		output_view.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 		output_view.setAutoCreateRowSorter(true);
 		output_view.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		output_view.setCellSelectionEnabled(true);
 		output_view.setColumnSelectionAllowed(true);
 		output_view.setFillsViewportHeight(true);
-		output_view.setSelectionBackground(SystemColor.textHighlight);
-		output_view.setSelectionForeground(new Color(0, 0, 0));
-		output_view.setGridColor(new Color(255, 255, 255));
+		output_view.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+		output_view.setSelectionBackground(NORD_COLORS.SELECTED_BACKGROUND);
+		output_view.setSelectionForeground(NORD_COLORS.SELECTED_FOREGROUND);
+		output_view.setGridColor(NORD_COLORS.FOREGROUND);
 		output_view.setFont(new Font("CaskaydiaCove Nerd Font Mono", Font.PLAIN, 24));
-		output_view.setForeground(new Color(255, 255, 255));
-		output_view.setBackground(new Color(52, 52, 52));
+		output_view.setForeground(NORD_COLORS.FOREGROUND);
+		output_view.setBackground(NORD_COLORS.BACKGROUND);
+		output_view.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
+		output_view.setAutoscrolls(true);
+		output_view.setDragEnabled(true);
+		output_view.setLayout(new BorderLayout(0, 0));
+		output_view.setSize(new Dimension(2560,1600));
 
 		JLabel table_lbl = new JLabel("Table View");
 		table_lbl.setBorder(null);
 		table_lbl.setFont(new Font("CaskaydiaCove Nerd Font Propo", Font.PLAIN, 13));
-		table_lbl.setBackground(new Color(33, 33, 33));
-		table_lbl.setForeground(new Color(255, 255, 255));
+		table_lbl.setBackground(NORD_COLORS.BACKGROUND);
+		table_lbl.setForeground(NORD_COLORS.FOREGROUND);
 		table_lbl.setHorizontalAlignment(SwingConstants.CENTER);
 		table_pnl.add(table_lbl, BorderLayout.NORTH);
 
 		JPanel statement_pnl = new JPanel();
 		statement_pnl.setBorder(null);
-		statement_pnl.setBackground(new Color(33, 33, 33));
+		statement_pnl.setBackground(NORD_COLORS.BACKGROUND);
 		sub_split_pnl.setRightComponent(statement_pnl);
 		statement_pnl.setLayout(new BorderLayout(0, 0));
 
 		JLabel statement_lbl = new JLabel("Statement Editor");
+		statement_lbl.setLocale(Locale.GERMANY);
 		statement_lbl.setBorder(null);
 		statement_lbl.setFont(new Font("CaskaydiaCove Nerd Font Propo", Font.PLAIN, 13));
 		statement_lbl.setHorizontalAlignment(SwingConstants.CENTER);
-		statement_lbl.setForeground(new Color(255, 255, 255));
-		statement_lbl.setBackground(new Color(33, 33, 33));
+		statement_lbl.setForeground(NORD_COLORS.FOREGROUND);
+		statement_lbl.setBackground(NORD_COLORS.BACKGROUND);
 		statement_pnl.add(statement_lbl, BorderLayout.NORTH);
 		syntaxTextArea.setBorder(null);
 		syntaxTextArea.setTabSize(3);
-		syntaxTextArea.setHyperlinkForeground(new Color(255, 255, 255));
+
+		syntaxTextArea.setCodeFoldingEnabled(true);
+		syntaxTextArea.setEOLMarkersVisible(true);
+		syntaxTextArea.setPaintMarkOccurrencesBorder(true);
+		syntaxTextArea.setPaintMatchedBracketPair(true);
+		syntaxTextArea.setPaintTabLines(true);
+		syntaxTextArea.setWrapStyleWord(false);
+		syntaxTextArea.setFractionalFontMetricsEnabled(true);
+		syntaxTextArea.setFont(new Font("CaskaydiaCove Nerd Font Mono", Font.PLAIN, 24));
+		syntaxTextArea.setAntiAliasingEnabled(true);
+		syntaxTextArea.setTabsEmulated(true);
+		syntaxTextArea.setWhitespaceVisible(true);
+		syntaxTextArea.setUseSelectedTextColor(true);
+		syntaxTextArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_SQL);
+		SyntaxScheme s = syntaxTextArea.getSyntaxScheme();
+
+		// Comments
+		s.getStyle(Token.COMMENT_DOCUMENTATION).foreground = NORD_COLORS.LIGHT_BLUE;
+		s.getStyle(Token.COMMENT_EOL).foreground = NORD_COLORS.LIGHT_BLUE;
+		s.getStyle(Token.COMMENT_MULTILINE).foreground = NORD_COLORS.LIGHT_BLUE;
+
+		// Keywords and operators
+		s.getStyle(Token.RESERVED_WORD).foreground = NORD_COLORS.BLUE;
+		s.getStyle(Token.RESERVED_WORD_2).foreground = NORD_COLORS.BLUE;
+		s.getStyle(Token.OPERATOR).foreground = NORD_COLORS.BLUE;
+
+		// Literals
+		s.getStyle(Token.LITERAL_BOOLEAN).foreground = NORD_COLORS.MAGENTA;
+		s.getStyle(Token.LITERAL_NUMBER_DECIMAL_INT).foreground = NORD_COLORS.MAGENTA;
+		s.getStyle(Token.LITERAL_NUMBER_FLOAT).foreground = NORD_COLORS.MAGENTA;
+		s.getStyle(Token.LITERAL_NUMBER_HEXADECIMAL).foreground = NORD_COLORS.MAGENTA;
+		s.getStyle(Token.LITERAL_STRING_DOUBLE_QUOTE).foreground = NORD_COLORS.GREEN;
+
+		// Identifiers and functions
+		s.getStyle(Token.IDENTIFIER).foreground = NORD_COLORS.WHITE;
+		s.getStyle(Token.FUNCTION).foreground = NORD_COLORS.CYAN;
+
+		// Data types
+		s.getStyle(Token.DATA_TYPE).foreground = NORD_COLORS.BLUE;
+
+		// Separators
+		s.getStyle(Token.SEPARATOR).foreground = NORD_COLORS.WHITE;
+
+		// Errors
+		s.getStyle(Token.ERROR_CHAR).foreground = NORD_COLORS.RED;
+		s.getStyle(Token.ERROR_IDENTIFIER).foreground = NORD_COLORS.RED;
+		s.getStyle(Token.ERROR_NUMBER_FORMAT).foreground = NORD_COLORS.RED;
+		s.getStyle(Token.ERROR_STRING_DOUBLE).foreground = NORD_COLORS.RED;
+
+		// Markup-specific styles (if needed)
+		s.getStyle(Token.MARKUP_TAG_DELIMITER).foreground = NORD_COLORS.WHITE;
+		s.getStyle(Token.MARKUP_TAG_NAME).foreground = NORD_COLORS.BLUE;
+		s.getStyle(Token.MARKUP_TAG_ATTRIBUTE).foreground = NORD_COLORS.CYAN;
+		s.getStyle(Token.MARKUP_TAG_ATTRIBUTE_VALUE).foreground = NORD_COLORS.GREEN;
+
+		// Set background color for all token types
+		for (int i = 0; i < s.getStyleCount(); i++) {
+		    Style style = s.getStyle(i);
+		    if (style != null) {
+		        style.background = NORD_COLORS.BACKGROUND;
+		    }
+		}
+
+		// Set font for all token types
+		Font codeFont = new Font("CaskaydiaCove Nerd Font Mono", Font.PLAIN, 24);
+		for (int i = 0; i < s.getStyleCount(); i++) {
+		    Style style = s.getStyle(i);
+		    if (style != null) {
+		        style.font = codeFont;
+		    }
+		}
+
+		syntaxTextArea.setSyntaxScheme(s);
+
+		// Additional RSyntaxTextArea settings
+		syntaxTextArea.setBackground(NORD_COLORS.BACKGROUND);
+		syntaxTextArea.setForeground(NORD_COLORS.WHITE);
+		syntaxTextArea.setCaretColor(NORD_COLORS.WHITE);
+		syntaxTextArea.setCurrentLineHighlightColor(NORD_COLORS.DARK_GRAY);
+		syntaxTextArea.setSelectionColor(NORD_COLORS.LIGHT_GRAY);
+		syntaxTextArea.setMatchedBracketBGColor(NORD_COLORS.LIGHT_GRAY);
+		syntaxTextArea.setMatchedBracketBorderColor(NORD_COLORS.WHITE);
 
 
 
-			syntaxTextArea.setCodeFoldingEnabled(true);
-			syntaxTextArea.setEOLMarkersVisible(true);
-			syntaxTextArea.setMatchedBracketBorderColor(SystemColor.textHighlightText);
-			syntaxTextArea.setMatchedBracketBGColor(SystemColor.controlHighlight);
-			syntaxTextArea.setPaintMarkOccurrencesBorder(true);
-			syntaxTextArea.setPaintMatchedBracketPair(true);
-			syntaxTextArea.setPaintTabLines(true);
-			syntaxTextArea.setWrapStyleWord(false);
-			syntaxTextArea.setFractionalFontMetricsEnabled(true);
-			syntaxTextArea.setFont(new Font("CaskaydiaCove Nerd Font Mono", Font.PLAIN, 24));
-			syntaxTextArea.setMarkAllHighlightColor(SystemColor.textHighlight);
-			syntaxTextArea.setTabLineColor(new Color(255, 255, 255));
-			syntaxTextArea.setForeground(new Color(255, 255, 255));
-			syntaxTextArea.setTabsEmulated(true);
-			syntaxTextArea.setWhitespaceVisible(true);
-			syntaxTextArea.setUseSelectedTextColor(true);
-			syntaxTextArea.setCurrentLineHighlightColor(new Color(55, 55, 55));
-			syntaxTextArea.setBackground(new Color(52, 52, 52));
-			syntaxTextArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_SQL);
 
-
-
-			statement_view = new RTextScrollPane(syntaxTextArea);
-			statement_view.getGutter().setBorder(null);
-			statement_view.getTextArea().setBorder(null);
-			statement_view.setBorder(null);
-			statement_pnl.add(statement_view, BorderLayout.CENTER);
-			statement_view.getGutter().setExpandedFoldRenderStrategy(ExpandedFoldRenderStrategy.ALWAYS);
-			statement_view.getGutter().setCurrentLineNumberColor(SystemColor.controlHighlight);
-			statement_view.getGutter().setActiveLineRangeColor(SystemColor.textHighlight);
-			statement_view.getGutter().setArmedFoldBackground(new Color(33, 33, 33));
-			statement_view.getGutter().setBorderColor(new Color(33, 33, 33));
-			statement_view.getGutter().setFoldIndicatorForeground(new Color(255, 255, 255));
-			statement_view.getGutter().setFoldBackground(new Color(33, 33, 33));
-			statement_view.getGutter().setForeground(new Color(33, 33, 33));
-			statement_view.getGutter().setBackground(new Color(33, 33, 33));
-			statement_view.getGutter().setLineNumberColor(new Color(255, 255, 255));
-			statement_view.getGutter().setLineNumberFont(new Font("CaskaydiaCove Nerd Font Mono", Font.PLAIN, 24));
-			statement_view.setBackground(new Color(52, 52, 52));
-			statement_view.setForeground(new Color(255, 255, 255));
-			statement_view.setFont(new Font("CaskaydiaCove Nerd Font Mono", Font.PLAIN, 24));
+		statement_view = new RTextScrollPane(syntaxTextArea);
+		statement_view.getGutter().setBorder(null);
+		statement_view.getTextArea().setBorder(null);
+		statement_view.setBorder(null);
+		statement_pnl.add(statement_view, BorderLayout.CENTER);
+		statement_view.getGutter().setExpandedFoldRenderStrategy(ExpandedFoldRenderStrategy.ALWAYS);
+		statement_view.getGutter().setCurrentLineNumberColor(NORD_COLORS.FOREGROUND);
+		statement_view.getGutter().setActiveLineRangeColor(NORD_COLORS.SELECTED_BACKGROUND);
+		statement_view.getGutter().setArmedFoldBackground(NORD_COLORS.BACKGROUND);
+		statement_view.getGutter().setBorderColor(NORD_COLORS.BACKGROUND);
+		statement_view.getGutter().setFoldIndicatorForeground(NORD_COLORS.FOREGROUND);
+		statement_view.getGutter().setFoldBackground(NORD_COLORS.BACKGROUND);
+		statement_view.getGutter().setForeground(NORD_COLORS.FOREGROUND);
+		statement_view.getGutter().setBackground(NORD_COLORS.BACKGROUND);
+		statement_view.getGutter().setLineNumberColor(NORD_COLORS.FOREGROUND);
+		statement_view.getGutter().setLineNumberFont(new Font("CaskaydiaCove Nerd Font Mono", Font.PLAIN, 24));
+		statement_view.setBackground(NORD_COLORS.BACKGROUND);
+		statement_view.setForeground(NORD_COLORS.FOREGROUND);
+		statement_view.setFont(new Font("CaskaydiaCove Nerd Font Mono", Font.PLAIN, 24));
 
 		JPanel log_pnl = new JPanel();
 		log_pnl.setBorder(null);
-		log_pnl.setForeground(new Color(255, 255, 255));
-		log_pnl.setBackground(new Color(33, 33, 33));
+		log_pnl.setForeground(NORD_COLORS.FOREGROUND);
+		log_pnl.setBackground(NORD_COLORS.BACKGROUND);
 		main_split_pnl.setRightComponent(log_pnl);
 		log_pnl.setLayout(new BorderLayout(0, 0));
 
 		JLabel log_lbl = new JLabel("Log View");
 		log_lbl.setBorder(null);
-		log_lbl.setBackground(new Color(33, 33, 33));
+		log_lbl.setBackground(NORD_COLORS.BACKGROUND);
 		log_lbl.setFont(new Font("CaskaydiaCove Nerd Font Propo", Font.PLAIN, 13));
 		log_lbl.setHorizontalAlignment(SwingConstants.CENTER);
-		log_lbl.setForeground(new Color(255, 255, 255));
+		log_lbl.setForeground(NORD_COLORS.FOREGROUND);
 		log_pnl.add(log_lbl, BorderLayout.NORTH);
 
 		JScrollPane log_pane = new JScrollPane();
@@ -629,113 +713,116 @@ public class MainWindow extends JFrame {
 		log_pnl.add(log_pane, BorderLayout.CENTER);
 		log_pane.setAutoscrolls(true);
 		log_pane.setFont(new Font("CaskaydiaCove Nerd Font Propo", Font.PLAIN, 12));
-		log_pane.setForeground(new Color(255, 255, 255));
-		log_pane.setBackground(new Color(52, 52, 52));
+		log_pane.setForeground(NORD_COLORS.FOREGROUND);
+		log_pane.setBackground(NORD_COLORS.BACKGROUND);
 		log_pane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 		log_pane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
 
 		log_view = new JTextArea();
+		log_view.setLocale(Locale.GERMANY);
 		log_view.setBorder(null);
 		log_pane.setViewportView(log_view);
 		log_view.setSelectionColor(SystemColor.textHighlight);
 		log_view.setEditable(false);
 		log_view.setFont(new Font("CaskaydiaCove Nerd Font Mono", Font.PLAIN, 24));
-		log_view.setBackground(new Color(52, 52, 52));
-		log_view.setForeground(new Color(255, 255, 255));
+		log_view.setBackground(NORD_COLORS.BACKGROUND);
+		log_view.setForeground(NORD_COLORS.FOREGROUND);
 
 		JPanel top_pnl = new JPanel();
 		top_pnl.setBorder(null);
-		top_pnl.setBackground(new Color(34, 34, 34));
+		top_pnl.setBackground(NORD_COLORS.BACKGROUND);
 		contentPane.add(top_pnl, BorderLayout.NORTH);
 		top_pnl.setLayout(new GridLayout(1, 1, 0, 0));
 
 		JLabel protocoll_lbl = new JLabel("Protocoll:");
 		protocoll_lbl.setFont(new Font("CaskaydiaCove Nerd Font Propo", Font.BOLD, 12));
 		protocoll_lbl.setHorizontalAlignment(SwingConstants.RIGHT);
-		protocoll_lbl.setForeground(new Color(255, 255, 255));
-		protocoll_lbl.setBackground(new Color(34, 34, 34));
+		protocoll_lbl.setForeground(NORD_COLORS.FOREGROUND);
+		protocoll_lbl.setBackground(NORD_COLORS.BACKGROUND);
 		top_pnl.add(protocoll_lbl);
 
 		JComboBox protocoll_tf = new JComboBox();
-		protocoll_tf.setModel(new DefaultComboBoxModel(new String[] {"", "sqlserver", "oracle", "mysql", "postgresql", "db2"}));
+		protocoll_tf.setModel(
+				new DefaultComboBoxModel(new String[] { "", "sqlserver", "oracle", "mysql", "postgresql", "db2" }));
 		protocoll_tf.setSelectedIndex(0);
-		protocoll_tf.setForeground(new Color(255, 255, 255));
-		protocoll_tf.setBackground(new Color(52, 52, 52));
+		protocoll_tf.setForeground(NORD_COLORS.FOREGROUND);
+		protocoll_tf.setBackground(NORD_COLORS.BACKGROUND);
 		protocoll_tf.setEditable(true);
 		top_pnl.add(protocoll_tf);
 
 		JLabel server_lbl = new JLabel("Server:");
 		server_lbl.setFont(new Font("CaskaydiaCove Nerd Font Propo", Font.BOLD, 12));
 		server_lbl.setHorizontalAlignment(SwingConstants.RIGHT);
-		server_lbl.setForeground(new Color(255, 255, 255));
-		server_lbl.setBackground(new Color(34, 34, 34));
+		server_lbl.setForeground(NORD_COLORS.FOREGROUND);
+		server_lbl.setBackground(NORD_COLORS.BACKGROUND);
 		top_pnl.add(server_lbl);
 
 		JComboBox server_tf = new JComboBox();
-		server_tf.setModel(new DefaultComboBoxModel(new String[] {"", "localhost", "127.0.0.1", "::1"}));
+		server_tf.setModel(new DefaultComboBoxModel(new String[] { "", "localhost", "127.0.0.1", "::1" }));
 		server_tf.setSelectedIndex(0);
-		server_tf.setForeground(new Color(255, 255, 255));
-		server_tf.setBackground(new Color(52, 52, 52));
+		server_tf.setForeground(NORD_COLORS.FOREGROUND);
+		server_tf.setBackground(NORD_COLORS.BACKGROUND);
 		server_tf.setEditable(true);
 		top_pnl.add(server_tf);
 
 		JLabel port_lbl = new JLabel("Port:");
 		port_lbl.setFont(new Font("CaskaydiaCove Nerd Font Propo", Font.BOLD, 12));
 		port_lbl.setHorizontalAlignment(SwingConstants.RIGHT);
-		port_lbl.setForeground(new Color(255, 255, 255));
-		port_lbl.setBackground(new Color(34, 34, 34));
+		port_lbl.setForeground(NORD_COLORS.FOREGROUND);
+		port_lbl.setBackground(NORD_COLORS.BACKGROUND);
 		top_pnl.add(port_lbl);
 
 		JComboBox port_tf = new JComboBox();
-		port_tf.setModel(new DefaultComboBoxModel(new String[] {"", "1433", "1521", "3306", "5432", "50000"}));
+		port_tf.setModel(new DefaultComboBoxModel(new String[] { "", "1433", "1521", "3306", "5432", "50000" }));
 		port_tf.setSelectedIndex(0);
-		port_tf.setForeground(new Color(255, 255, 255));
-		port_tf.setBackground(new Color(52, 52, 52));
+		port_tf.setForeground(NORD_COLORS.FOREGROUND);
+		port_tf.setBackground(NORD_COLORS.BACKGROUND);
 		port_tf.setEditable(true);
 		top_pnl.add(port_tf);
 
 		JLabel db_lbl = new JLabel("Database:");
 		db_lbl.setFont(new Font("CaskaydiaCove Nerd Font Propo", Font.BOLD, 12));
 		db_lbl.setHorizontalAlignment(SwingConstants.RIGHT);
-		db_lbl.setForeground(new Color(255, 255, 255));
-		db_lbl.setBackground(new Color(34, 34, 34));
+		db_lbl.setForeground(NORD_COLORS.FOREGROUND);
+		db_lbl.setBackground(NORD_COLORS.BACKGROUND);
 		top_pnl.add(db_lbl);
 
 		db_tf = new JTextField();
-		db_tf.setSelectionColor(SystemColor.textHighlight);
-		db_tf.setSelectedTextColor(new Color(0, 0, 0));
+		db_tf.setSelectionColor(NORD_COLORS.SELECTED_BACKGROUND);
+		db_tf.setSelectedTextColor(NORD_COLORS.BACKGROUND);
 		db_tf.setFont(new Font("CaskaydiaCove Nerd Font Propo", Font.PLAIN, 12));
-		db_tf.setForeground(new Color(0, 0, 0));
-		db_tf.setBackground(new Color(255, 255, 255));
+		db_tf.setForeground(NORD_COLORS.FOREGROUND);
+		db_tf.setBackground(NORD_COLORS.BACKGROUND);
 		top_pnl.add(db_tf);
 		db_tf.setColumns(10);
 
 		JLabel user_lbl = new JLabel("User:");
 		user_lbl.setHorizontalAlignment(SwingConstants.RIGHT);
-		user_lbl.setForeground(new Color(255, 255, 255));
-		user_lbl.setBackground(new Color(34, 34, 34));
+		user_lbl.setForeground(NORD_COLORS.FOREGROUND);
+		user_lbl.setBackground(NORD_COLORS.BACKGROUND);
 		top_pnl.add(user_lbl);
 
 		JComboBox user_tf = new JComboBox();
 		user_tf.setEditable(true);
-		user_tf.setBackground(new Color(52, 52, 52));
-		user_tf.setForeground(new Color(255, 255, 255));
-		user_tf.setModel(new DefaultComboBoxModel(new String[] {"", "sa", "sys", "root", "postgres", "db2admin", "admin"}));
+		user_tf.setBackground(NORD_COLORS.BACKGROUND);
+		user_tf.setForeground(NORD_COLORS.FOREGROUND);
+		user_tf.setModel(
+				new DefaultComboBoxModel(new String[] { "", "sa", "sys", "root", "postgres", "db2admin", "admin" }));
 		user_tf.setSelectedIndex(0);
 		top_pnl.add(user_tf);
 
 		JLabel passwd_lbl = new JLabel("Password:");
 		passwd_lbl.setFont(new Font("CaskaydiaCove Nerd Font Propo", Font.BOLD, 12));
-		passwd_lbl.setBackground(new Color(34, 34, 34));
-		passwd_lbl.setForeground(new Color(255, 255, 255));
+		passwd_lbl.setBackground(NORD_COLORS.BACKGROUND);
+		passwd_lbl.setForeground(NORD_COLORS.FOREGROUND);
 		passwd_lbl.setHorizontalAlignment(SwingConstants.RIGHT);
 		top_pnl.add(passwd_lbl);
 
 		passwd_tf = new JPasswordField();
 		passwd_tf.setSelectionColor(SystemColor.textHighlight);
 		passwd_tf.setFont(new Font("CaskaydiaCove Nerd Font Propo", Font.PLAIN, 12));
-		passwd_tf.setForeground(new Color(0, 0, 0));
-		passwd_tf.setBackground(new Color(255, 255, 255));
+		passwd_tf.setForeground(NORD_COLORS.FOREGROUND);
+		passwd_tf.setBackground(NORD_COLORS.BACKGROUND);
 		top_pnl.add(passwd_tf);
 		passwd_tf.setColumns(10);
 		passwd_tf.setToolTipText("Password");
@@ -747,53 +834,64 @@ public class MainWindow extends JFrame {
 		run_statement_btn.setToolTipText("Run Statement");
 		run_statement_btn.addActionListener(new ActionListener() {
 			@Override
-		    public void actionPerformed(ActionEvent e) {
-		        user = user_tf.getSelectedItem().toString();
-		        if (log == null) {
-		        	setLog("User: " + user);
-		        } else {
-		        	addLog("User: " + user);
-		        }
-		        passwd = String.valueOf(passwd_tf.getPassword());
-		        addLog("Password: " + getPasswd());
+			public void actionPerformed(ActionEvent e) {
+				user = user_tf.getSelectedItem().toString();
+				if (log == null) {
+					setLog("User: " + user);
+				} else {
+					addLog("User: " + user);
+				}
+				passwd = String.valueOf(passwd_tf.getPassword());
+				addLog("Password: " + getPasswd());
 
-		        server = "jdbc:"+ protocoll_tf.getSelectedItem().toString() + "://" +  server_tf.getSelectedItem().toString() +":" + port_tf.getSelectedItem().toString() + "/" + db_tf.getText();
-		        addLog("Server + Database: " + server);
+				server = "jdbc:" + protocoll_tf.getSelectedItem().toString() + "://"
+						+ server_tf.getSelectedItem().toString() + ":" + port_tf.getSelectedItem().toString() + "/"
+						+ db_tf.getText();
+				addLog("Server + Database: " + server);
 
-		        try {
-		            con = DriverManager.getConnection(server, user, passwd);
-		            addLog("Connection opened");
-		            log_view.setText(getLog());
+				try {
+					con = DriverManager.getConnection(server, user, passwd);
+					addLog("Connection opened");
+					log_view.setText(getLog());
 
-		            statement = con.createStatement();
-		            output = statement.executeQuery(syntaxTextArea.getText());
-		            
-		            addLog("Getting Results...");
+					statement = con.createStatement();
+					output = statement.executeQuery(syntaxTextArea.getText());
 
-		            // Create a custom TableModel with the ResultSet
-		            ResultSetTableModel tableModel = new ResultSetTableModel(output);
-		            
-		            addLog("Format data for visulation...");
+					addLog("Getting Results...");
 
-		            // Set the custom TableModel to the output_view JTable
-		            output_view.setModel(tableModel);
-		            addLog("Display data in Table View");
-		            // Display formatted result set in the log text area
-		            //addLog(formatResultSet(output));
-		            passwd = " ";
-		            con.close();
-		            addLog("Connection closed");
-		        } catch (SQLException ex) {
-		            // Handle possible errors...
-		            addLog("Error: " + ex.getMessage());
-		            // ... and display an error message, for example
-		        }
-		    }
-        });
-		run_statement_btn.setForeground(new Color(0, 0, 0));
-		run_statement_btn.setBackground(new Color(255, 255, 255));
+					// Create a custom TableModel with the ResultSet
+					ResultSetTableModel tableModel = new ResultSetTableModel(output);
+
+					addLog("Format data for visulation...");
+
+					// Set the custom TableModel to the output_view JTable
+					output_view.setModel(tableModel);
+
+					addLog("Display data in Table View");
+					// Display formatted result set in the log text area
+					//addLog(formatResultSet(output));
+					passwd = " ";
+					con.close();
+					addLog("Connection closed");
+				} catch (SQLException ex) {
+					// Handle possible errors...
+					addLog("Error: " + ex.getMessage());
+					// ... and display an error message, for example
+				}
+			}
+		});
+		run_statement_btn.setForeground(NORD_COLORS.FOREGROUND);
+		run_statement_btn.setBackground(NORD_COLORS.BACKGROUND);
 		top_pnl.add(run_statement_btn);
 
+		this.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                // Resize the output_view to the size of the JFrame
+                output_view.setSize(new Dimension(2560,1600));
+            }
+        });
 
-}
+
+	}
 }
