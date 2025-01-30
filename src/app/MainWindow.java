@@ -5,14 +5,7 @@ import components.NORD_COLORS;
 import components.ResultSetTableModel;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableColumn;
-
-
-import java.awt.Component;
-import java.awt.Window.Type;
 import java.awt.Font;
 import java.awt.FontFormatException;
 import java.awt.GraphicsEnvironment;
@@ -20,31 +13,24 @@ import java.io.*;
 import java.awt.BorderLayout;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
-import javax.swing.JEditorPane;
 import java.awt.GridLayout;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
-import java.awt.FlowLayout;
 import javax.swing.JLabel;
 import javax.swing.JMenuBar;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JTextField;
 import javax.swing.JPasswordField;
-import javax.swing.DropMode;
 import javax.swing.SwingConstants;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.JButton;
 import java.awt.ComponentOrientation;
 import java.awt.Cursor;
 import java.awt.Dimension;
-import javax.swing.text.*;
-import javax.swing.JToolBar;
-import javax.swing.JTabbedPane;
 import javax.swing.JSplitPane;
 import javax.swing.JFileChooser;
-import java.awt.GridBagLayout;
-import java.awt.GridBagConstraints;
-import java.awt.Insets;
 import java.awt.SystemColor;
 import java.sql.*;
 import java.awt.event.ActionEvent;
@@ -55,8 +41,6 @@ import java.awt.event.ComponentEvent;
 import javax.swing.JComboBox;
 import javax.swing.Action;
 import javax.swing.DefaultComboBoxModel;
-import java.awt.ScrollPane;
-import javax.swing.JTextPane;
 import javax.swing.ListSelectionModel;
 import org.fife.ui.rtextarea.*;
 import org.fife.ui.rsyntaxtextarea.*;
@@ -64,8 +48,8 @@ import org.fife.ui.rsyntaxtextarea.Style;
 
 import javax.swing.KeyStroke;
 import java.awt.event.KeyEvent;
-import javax.swing.AbstractAction;
 import java.awt.event.InputEvent;
+import java.util.Arrays;
 import java.util.Locale;
 import java.awt.Dialog.ModalExclusionType;
 
@@ -75,9 +59,7 @@ public class MainWindow extends JFrame {
 	private JTextField db_tf;
 	private JPasswordField passwd_tf;
 	private String user;
-	private String passwd;
 	private String server;
-	private Statement statement;
 	private ResultSet output;
 	private String log  = "";
 	private Connection con;
@@ -240,18 +222,6 @@ public class MainWindow extends JFrame {
         });
     }
 
-
-	private String getPasswd() {
-		String passwdd = "";
-		for (int i = 0; i < passwd.length(); i++) {
-			if (passwdd == null) {
-				passwdd = "*";
-			} else {
-				passwdd = passwdd + "*";
-			}
-		}
-		return passwdd;
-	}
 
 	private void setLog(String logtext) {
 		log = logtext;
@@ -530,14 +500,12 @@ public class MainWindow extends JFrame {
 		table_pnl.setLayout(new BorderLayout(0, 0));
 
 		JScrollPane table_pane = new JScrollPane();
-		table_pane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		table_pane.setBorder(null);
 		table_pnl.add(table_pane);
 		table_pane.setAutoscrolls(true);
 		table_pane.setFont(new Font("CaskaydiaCove Nerd Font Propo", Font.PLAIN, 12));
 		table_pane.setForeground(NORD_COLORS.FOREGROUND);
 		table_pane.setBackground(NORD_COLORS.BACKGROUND);
-		table_pane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 
 		output_view = new JTable();
 		output_view.setLocale(Locale.GERMANY);
@@ -741,9 +709,8 @@ public class MainWindow extends JFrame {
 		protocoll_lbl.setBackground(NORD_COLORS.BACKGROUND);
 		top_pnl.add(protocoll_lbl);
 
-		JComboBox protocoll_tf = new JComboBox();
-		protocoll_tf.setModel(
-				new DefaultComboBoxModel(new String[] { "", "sqlserver", "oracle", "mysql", "postgresql", "db2" }));
+		JComboBox<String> protocoll_tf = new JComboBox<String>();
+		protocoll_tf.setModel(new DefaultComboBoxModel<>(new String[] { "", "sqlserver", "oracle", "mysql", "postgresql", "db2" }));
 		protocoll_tf.setSelectedIndex(0);
 		protocoll_tf.setForeground(NORD_COLORS.FOREGROUND);
 		protocoll_tf.setBackground(NORD_COLORS.BACKGROUND);
@@ -757,8 +724,8 @@ public class MainWindow extends JFrame {
 		server_lbl.setBackground(NORD_COLORS.BACKGROUND);
 		top_pnl.add(server_lbl);
 
-		JComboBox server_tf = new JComboBox();
-		server_tf.setModel(new DefaultComboBoxModel(new String[] { "", "localhost", "127.0.0.1", "::1" }));
+		JComboBox<String> server_tf = new JComboBox<String>();
+		server_tf.setModel(new DefaultComboBoxModel<>(new String[] { "", "localhost", "127.0.0.1", "::1" }));
 		server_tf.setSelectedIndex(0);
 		server_tf.setForeground(NORD_COLORS.FOREGROUND);
 		server_tf.setBackground(NORD_COLORS.BACKGROUND);
@@ -772,8 +739,8 @@ public class MainWindow extends JFrame {
 		port_lbl.setBackground(NORD_COLORS.BACKGROUND);
 		top_pnl.add(port_lbl);
 
-		JComboBox port_tf = new JComboBox();
-		port_tf.setModel(new DefaultComboBoxModel(new String[] { "", "1433", "1521", "3306", "5432", "50000" }));
+		JComboBox<Long> port_tf = new JComboBox<Long>();
+		port_tf.setModel(new DefaultComboBoxModel<>(new Long[]{ null, 1433L, 1521L, 3306L, 5432L, 50000L }));
 		port_tf.setSelectedIndex(0);
 		port_tf.setForeground(NORD_COLORS.FOREGROUND);
 		port_tf.setBackground(NORD_COLORS.BACKGROUND);
@@ -802,12 +769,11 @@ public class MainWindow extends JFrame {
 		user_lbl.setBackground(NORD_COLORS.BACKGROUND);
 		top_pnl.add(user_lbl);
 
-		JComboBox user_tf = new JComboBox();
+		JComboBox<String> user_tf = new JComboBox<String>();
 		user_tf.setEditable(true);
 		user_tf.setBackground(NORD_COLORS.BACKGROUND);
 		user_tf.setForeground(NORD_COLORS.FOREGROUND);
-		user_tf.setModel(
-				new DefaultComboBoxModel(new String[] { "", "sa", "sys", "root", "postgres", "db2admin", "admin" }));
+		user_tf.setModel(new DefaultComboBoxModel<>(new String[] { "", "sa", "sys", "root", "postgres", "db2admin", "admin" }));
 		user_tf.setSelectedIndex(0);
 		top_pnl.add(user_tf);
 
@@ -833,52 +799,65 @@ public class MainWindow extends JFrame {
 		run_statement_btn.setFont(new Font("CaskaydiaCove Nerd Font Propo", Font.BOLD, 12));
 		run_statement_btn.setToolTipText("Run Statement");
 		run_statement_btn.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				user = user_tf.getSelectedItem().toString();
-				if (log == null) {
-					setLog("User: " + user);
-				} else {
-					addLog("User: " + user);
-				}
-				passwd = String.valueOf(passwd_tf.getPassword());
-				addLog("Password: " + getPasswd());
+		    @Override
+		    public void actionPerformed(ActionEvent e) {
+		        user = user_tf.getSelectedItem().toString();
+		        addLog("User: " + user);
 
-				server = "jdbc:" + protocoll_tf.getSelectedItem().toString() + "://"
-						+ server_tf.getSelectedItem().toString() + ":" + port_tf.getSelectedItem().toString() + "/"
-						+ db_tf.getText();
-				addLog("Server + Database: " + server);
+		        char[] passwordChars = passwd_tf.getPassword();
+		        addLog("Password: " + "*".repeat(passwordChars.length));
 
-				try {
-					con = DriverManager.getConnection(server, user, passwd);
-					addLog("Connection opened");
-					log_view.setText(getLog());
+		        server = "jdbc:" + protocoll_tf.getSelectedItem().toString() + "://"
+		                + server_tf.getSelectedItem().toString() + ":" + port_tf.getSelectedItem().toString() + "/"
+		                + db_tf.getText();
+		        addLog("Server + Database: " + server);
 
-					statement = con.createStatement();
-					output = statement.executeQuery(syntaxTextArea.getText());
+		        try {
+		            con = DriverManager.getConnection(server, user, new String(passwordChars));
+		            addLog("Connection opened");
+		            log_view.setText(getLog());
 
-					addLog("Getting Results...");
+		            String sql = syntaxTextArea.getText();
+		            try (PreparedStatement pstmt = con.prepareStatement(sql)) {
+		                boolean isResultSet = pstmt.execute();
+		                if (isResultSet) {
+		                    output = pstmt.getResultSet();
+		                    addLog("Getting Results...");
+		                    output_view.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+		                    output_view.revalidate(); // Refreshes the table
+		                    output_view.repaint(); // Repaints the table
+		                    ResultSetTableModel tableModel = new ResultSetTableModel(output);
+		                    addLog("Format data for visualization...");
+		                    output_view.setModel(tableModel);
+		                    TableColumnAdjuster tca = new TableColumnAdjuster(output_view);
+		                    tca.adjustColumns();
+		                    output_view.revalidate(); // Refreshes the table
+		                    output_view.repaint(); // Repaints the table
+		                    if (output_view.getWidth() < table_pane.getWidth()) {
+		                    	output_view.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+		                    } else if (output_view.getWidth() == table_pane.getWidth()) {
+		                    	output_view.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+		                    } else if (output_view.getWidth() > table_pane.getWidth()) {
+		                    	output_view.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+		                    }
+		                    
+		                    
+		                    
+		                    addLog("Display data in Table View");
+		                } else {
+		                    int updateCount = pstmt.getUpdateCount();
+		                    addLog("Affected rows: " + updateCount);
+		                }
+		            }
 
-					// Create a custom TableModel with the ResultSet
-					ResultSetTableModel tableModel = new ResultSetTableModel(output);
-
-					addLog("Format data for visulation...");
-
-					// Set the custom TableModel to the output_view JTable
-					output_view.setModel(tableModel);
-
-					addLog("Display data in Table View");
-					// Display formatted result set in the log text area
-					//addLog(formatResultSet(output));
-					passwd = " ";
-					con.close();
-					addLog("Connection closed");
-				} catch (SQLException ex) {
-					// Handle possible errors...
-					addLog("Error: " + ex.getMessage());
-					// ... and display an error message, for example
-				}
-			}
+		            con.close();
+		            addLog("Connection closed");
+		        } catch (SQLException ex) {
+		            addLog("Error: " + ex.getMessage());
+		        } finally {
+		            Arrays.fill(passwordChars, ' ');
+		        }
+		    }
 		});
 		run_statement_btn.setForeground(NORD_COLORS.FOREGROUND);
 		run_statement_btn.setBackground(NORD_COLORS.BACKGROUND);
@@ -891,6 +870,8 @@ public class MainWindow extends JFrame {
                 output_view.setSize(new Dimension(2560,1600));
             }
         });
+		
+
 
 
 	}
